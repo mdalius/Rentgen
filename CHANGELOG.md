@@ -83,13 +83,14 @@ Open a GitHub issue with details and we will do our best.
 
 ---
 
-### 🌐 New Field Type: IPv4
+### 🌐 New Fields Type:
 
-New supported field type:
+New supported fields type:
 
 - IPv4
+- Numeric String
 
-Rentgen can now generate and validate IPv4-related test cases automatically.
+Rentgen can now generate and validate IPv4-related test cases automatically, also numbers as strings.
 
 ---
 
