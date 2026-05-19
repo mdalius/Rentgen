@@ -27,7 +27,9 @@ const config: ForgeConfig = {
     asar: true,
     executableName: 'Rentgen',
     icon: './assets/icons/rentgen',
-    osxSign: {},
+    osxSign: process.env.APPLE_SIGNING_IDENTITY
+      ? { identity: process.env.APPLE_SIGNING_IDENTITY }
+      : {},
     extraResource: [cliBinaryPath],
   },
   rebuildConfig: {},

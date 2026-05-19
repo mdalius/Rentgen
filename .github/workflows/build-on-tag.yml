@@ -66,6 +66,17 @@ jobs:
           security list-keychains -d user -s build.keychain
           security default-keychain -s build.keychain
 
+          IDENTITY=$(security find-identity -v -p codesigning build.keychain \
+            | grep "Developer ID Application" \
+            | head -1 \
+            | sed -E 's/.*"(Developer ID Application: [^"]+)".*/\1/')
+          if [ -z "$IDENTITY" ]; then
+            echo "Could not extract Developer ID Application identity from keychain"
+            exit 1
+          fi
+          echo "Found signing identity: $IDENTITY"
+          echo "APPLE_SIGNING_IDENTITY=$IDENTITY" >> "$GITHUB_ENV"
+
       - name: Build installers
         run: npm run make -- --arch=${{ matrix.arch }}
 
