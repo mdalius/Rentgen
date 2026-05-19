@@ -5,6 +5,7 @@ const DATA_TYPE_DETECTORS: ReadonlyArray<{
   regex: RegExp;
 }> = [
   { type: 'email', regex: /^["']?[^\s@]+@[^\s@]+\.[^\s@]+["']?$/ },
+  { type: 'currency', regex: /^[A-Z]{3}$/ },
   { type: 'enum', regex: /^[A-Z_]{1,10}$/ },
   { type: 'url', regex: /^https?:\/\/[^\s$.?#].[^\s]*$/i },
   { type: 'ftp_url', regex: /^ftp:\/\/[^\s$.?#].[^\s]*$/i },
@@ -12,7 +13,6 @@ const DATA_TYPE_DETECTORS: ReadonlyArray<{
   { type: 'number', regex: /^-?\d+(\.\d+)?$/ },
   { type: 'numeric_string', regex: /^["']-?\d+(\.\d+)?["']$/ },
   { type: 'boolean', regex: /^(true|false)$/i },
-  { type: 'currency', regex: /^[A-Z]{3}$/ },
   { type: 'date_yyyy_mm_dd', regex: /^["']?\d{4}-\d{2}-\d{2}["']?$/ },
   { type: 'ipv4', regex: /^["']?\d{1,3}(\.\d{1,3}){3}["']?$/ },
   { type: 'string', regex: /.+/ },
