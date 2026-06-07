@@ -1,8 +1,11 @@
 import cn from 'classnames';
-import { memo, useMemo } from 'react';
-import DataTable, { ExpanderComponentProps, TableColumn, TableProps } from 'react-data-table-component';
 import { TFunction } from 'i18next';
+import { memo, PropsWithChildren } from 'react';
+import DataTable, { ExpanderComponentProps, TableColumn, TableProps } from 'react-data-table-component';
 import { useTranslation } from 'react-i18next';
+import { twMerge } from 'tailwind-merge';
+import { useAppSelector } from '../../store/hooks';
+import { selectDisabledPerformanceInsights, selectDisabledSecurityTests } from '../../store/selectors';
 import { TestResult, TestStatus } from '../../types';
 import {
   decodeProtobufResponse,
@@ -15,7 +18,10 @@ import { CopyButton } from '../buttons/CopyButton';
 import { HttpPanel } from '../panels/HttpPanel';
 
 export default function TestsTable({ columns, data, className, ...otherProps }: TableProps<TestResult>) {
-  const definedData = useMemo(() => data?.filter(Boolean) ?? [], [data]);
+  const disabledSecurityTests = useAppSelector(selectDisabledSecurityTests);
+  const disabledPerformanceInsights = useAppSelector(selectDisabledPerformanceInsights);
+  const definedData = data?.filter((item) => item != null) ?? [];
+  const disabledTests = [...disabledSecurityTests, ...disabledPerformanceInsights];
 
   return (
     <DataTable
@@ -23,28 +29,28 @@ export default function TestsTable({ columns, data, className, ...otherProps }: 
       columns={columns}
       conditionalRowStyles={[
         {
-          when: (row) => row.status === TestStatus.Pass,
-          style: { backgroundColor: '#d4edda' },
-        },
-        {
-          when: (row) => row.status === TestStatus.Fail || row.status === TestStatus.FailNoResponse,
-          style: { backgroundColor: '#f8d7da' },
-        },
-        {
-          when: (row) => row.status === TestStatus.Manual,
-          style: { backgroundColor: '#e2e3e5' },
-        },
-        {
-          when: (row) => row.status === TestStatus.Warning,
-          style: { backgroundColor: '#fff3cd' },
-        },
-        {
-          when: (row) => row.status === TestStatus.Info,
-          style: { backgroundColor: '#e6f0ff' },
-        },
-        {
-          when: (row) => row.status === TestStatus.Bug,
-          style: { backgroundColor: '#f3e8ff' },
+          when: () => true,
+          style: (row) => {
+            const styles = disabledTests.includes(row.name) ? { opacity: 0.5, cursor: 'not-allowed' } : {};
+
+            switch (row.status) {
+              case TestStatus.Pass:
+                return { ...styles, backgroundColor: '#d4edda' };
+              case TestStatus.Fail:
+              case TestStatus.FailNoResponse:
+                return { ...styles, backgroundColor: '#f8d7da' };
+              case TestStatus.Manual:
+                return { ...styles, backgroundColor: '#e2e3e5' };
+              case TestStatus.Warning:
+                return { ...styles, backgroundColor: '#fff3cd' };
+              case TestStatus.Info:
+                return { ...styles, backgroundColor: '#e6f0ff' };
+              case TestStatus.Bug:
+                return { ...styles, backgroundColor: '#f3e8ff' };
+              default:
+                return styles;
+            }
+          },
         },
       ]}
       customStyles={{
@@ -62,6 +68,86 @@ export default function TestsTable({ columns, data, className, ...otherProps }: 
       data={definedData}
       {...otherProps}
     />
+  );
+}
+
+export function TestsTableHeader({
+  children,
+  disabledTests,
+  tests,
+  title,
+}: {
+  disabledTests?: string[];
+  tests: TestResult[];
+  title: string;
+} & PropsWithChildren) {
+  const { t } = useTranslation();
+  const { bugs, failed, passed, warnings } = tests.reduce(
+    (acc, { name, status }) => {
+      switch (status) {
+        case TestStatus.Fail:
+        case TestStatus.FailNoResponse:
+          if (!disabledTests?.includes(name)) acc.failed += 1;
+          break;
+        case TestStatus.Warning:
+          if (!disabledTests?.includes(name)) acc.warnings += 1;
+          break;
+        case TestStatus.Bug:
+          if (!disabledTests?.includes(name)) acc.bugs += 1;
+          break;
+        case TestStatus.Pass:
+          if (!disabledTests?.includes(name)) acc.passed += 1;
+          break;
+      }
+      return acc;
+    },
+    { bugs: 0, failed: 0, passed: 0, warnings: 0 },
+  );
+
+  return (
+    <div className="flex items-center">
+      <h4 className="flex items-center gap-2 flex-auto m-0 p-4">
+        <span
+          className={twMerge(
+            cn('w-2 h-2 rounded-full shrink-0 bg-gray-400', {
+              'bg-green-500': passed > 0 && failed === 0 && warnings === 0 && bugs === 0,
+              'bg-yellow-500': warnings > 0 && failed === 0 && bugs === 0,
+              'bg-red-500': failed > 0 && bugs === 0,
+              'bg-purple-500': bugs > 0,
+            }),
+          )}
+        />
+        {title}
+        <div className="flex-auto flex items-center justify-end gap-2 font-normal lowercase">
+          {passed > 0 && (
+            <span className="py-px px-2 text-sm text-green-500 bg-green-500/10 rounded">
+              {passed} {t('common.passed')}
+            </span>
+          )}
+          {warnings > 0 && (
+            <span className="py-px px-2 text-sm text-yellow-500 bg-yellow-500/10 rounded">
+              {warnings} {warnings === 1 ? t('common.warning') : t('common.warnings')}
+            </span>
+          )}
+          {failed > 0 && (
+            <span className="py-px px-2 text-sm text-red-500 bg-red-500/10 rounded">
+              {failed} {t('common.failed')}
+            </span>
+          )}
+          {bugs > 0 && (
+            <span className="py-px px-2 text-sm text-purple-500 bg-purple-500/10 rounded">
+              {bugs} {bugs === 1 ? t('common.bug') : t('common.bugs')}
+            </span>
+          )}
+          {!!disabledTests?.length && (
+            <span className="py-px px-2 text-sm text-text-secondary bg-text-secondary/10 rounded">
+              {disabledTests.length} {t('common.ignored')}
+            </span>
+          )}
+        </div>
+      </h4>
+      {children}
+    </div>
   );
 }
 

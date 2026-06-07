@@ -19,13 +19,22 @@ const es = {
     overwrite: 'Sobrescribir',
     enabled: 'Activado',
     disabled: 'Desactivado',
-    warning: 'Advertencia:',
     connect: 'Conectar',
     disconnect: 'Desconectar',
     beautify: 'Formatear',
     reload: 'Recargar',
     cut: 'Cortar',
     paste: 'Pegar',
+    enable: 'Activar',
+    disable: 'Desactivar',
+    passed: 'Aprobado',
+    failed: 'Fallido',
+    bug: 'Error',
+    bugs: 'Errores',
+    warning: 'Advertencia',
+    warnings: 'Advertencias',
+    ignore: 'Ignorar',
+    ignored: 'Ignorado',
   },
 
   // Sidebar
@@ -366,6 +375,12 @@ const es = {
       title: 'Pruebas de seguridad',
       enabledCount: '{{enabled}}/{{total}} activadas',
       description: 'Activa o desactiva pruebas de seguridad individuales para personalizar tu experiencia de pruebas.',
+    },
+    performanceInsights: {
+      title: 'Análisis de rendimiento',
+      enabledCount: '{{enabled}}/{{total}} activados',
+      description:
+        'Activa o desactiva análisis de rendimiento individuales para personalizar tu experiencia de pruebas.',
     },
     languageSection: {
       title: 'Idioma',

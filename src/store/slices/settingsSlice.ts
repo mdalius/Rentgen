@@ -5,6 +5,10 @@ import i18n from '../../i18n';
 import { Language } from '../../i18n/languages';
 import { Interval } from '../../types';
 
+export const MEDIAN_RESPONSE_TIME_TEST_NAME = 'Median Response Time';
+export const NETWORK_SHARE_TEST_NAME = 'Network Share Calculation';
+export const PING_LATENCY_TEST_NAME = 'Ping Latency';
+
 export type HistoryRetention = '1w' | '1m' | '3m' | '6m' | '1y' | 'none';
 
 export interface SettingsState {
@@ -36,6 +40,9 @@ export interface SettingsState {
       };
     };
     securityTests: {
+      disabled: string[];
+    };
+    performanceInsights: {
       disabled: string[];
     };
   };
@@ -78,6 +85,9 @@ export const initialState: SettingsState = {
       },
     },
     securityTests: {
+      disabled: [],
+    },
+    performanceInsights: {
       disabled: [],
     },
   },
@@ -139,6 +149,26 @@ export const settingsSlice = createSlice({
         );
       else state.testEngine.securityTests.disabled.push(action.payload);
     },
+    togglePerformanceInsight: (state, action: PayloadAction<string>) => {
+      if (state.testEngine.performanceInsights.disabled.includes(action.payload)) {
+        if (
+          action.payload !== NETWORK_SHARE_TEST_NAME ||
+          (!state.testEngine.performanceInsights.disabled.includes(MEDIAN_RESPONSE_TIME_TEST_NAME) &&
+            !state.testEngine.performanceInsights.disabled.includes(PING_LATENCY_TEST_NAME))
+        )
+          state.testEngine.performanceInsights.disabled = state.testEngine.performanceInsights.disabled.filter(
+            (insight) => insight !== action.payload,
+          );
+      } else {
+        state.testEngine.performanceInsights.disabled.push(action.payload);
+
+        if (
+          (action.payload === MEDIAN_RESPONSE_TIME_TEST_NAME || action.payload === PING_LATENCY_TEST_NAME) &&
+          !state.testEngine.performanceInsights.disabled.includes(NETWORK_SHARE_TEST_NAME)
+        )
+          state.testEngine.performanceInsights.disabled.push(NETWORK_SHARE_TEST_NAME);
+      }
+    },
     toggleTheme: (state) => {
       state.theme = state.theme === 'light' ? 'dark' : 'light';
       applyTheme(state);
@@ -152,9 +182,10 @@ export const settingsSlice = createSlice({
       i18n.changeLanguage(action.payload);
     },
     replaceSettings: (state, action: PayloadAction<SettingsState>) => {
-      Object.assign(state, action.payload);
-      applyTheme(state);
+      Object.assign(state, merge(initialState, action.payload));
+
       if (action.payload.language) i18n.changeLanguage(action.payload.language);
+      applyTheme(state);
     },
   },
   extraReducers: (builder) => {
@@ -166,7 +197,7 @@ export const settingsSlice = createSlice({
       state.language = action.payload.language || 'en';
 
       if (action.payload.language) i18n.changeLanguage(action.payload.language);
-      if (action.payload.theme === 'dark') document.documentElement.classList.add('dark');
+      applyTheme(state);
     });
   },
 });

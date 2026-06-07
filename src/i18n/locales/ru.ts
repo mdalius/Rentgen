@@ -19,13 +19,22 @@ const ru = {
     overwrite: 'Перезаписать',
     enabled: 'Включено',
     disabled: 'Отключено',
-    warning: 'Предупреждение:',
     connect: 'Подключиться',
     disconnect: 'Отключиться',
     beautify: 'Форматировать',
     reload: 'Перезагрузить',
     cut: 'Вырезать',
     paste: 'Вставить',
+    enable: 'Включить',
+    disable: 'Отключить',
+    passed: 'Пройдено',
+    failed: 'Провалено',
+    bug: 'Ошибка',
+    bugs: 'Ошибки',
+    warning: 'Предупреждение',
+    warnings: 'Предупреждения',
+    ignore: 'Игнорировать',
+    ignored: 'Игнорируется',
   },
 
   // Sidebar
@@ -363,6 +372,12 @@ const ru = {
       title: 'Тесты безопасности',
       enabledCount: '{{enabled}}/{{total}} включено',
       description: 'Включайте и отключайте отдельные тесты безопасности, чтобы настроить работу под себя.',
+    },
+    performanceInsights: {
+      title: 'Анализ производительности',
+      enabledCount: '{{enabled}}/{{total}} включено',
+      description:
+        'Включайте и отключайте отдельные элементы анализа производительности, чтобы настроить работу под себя.',
     },
     languageSection: {
       title: 'Язык',

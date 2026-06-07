@@ -6,7 +6,7 @@ import { JsonViewer } from '../viewers/JsonViewer';
 import { Props as PanelProps } from './Panel';
 
 interface Props extends PanelProps {
-  source: HttpRequest | HttpResponse | string;
+  source?: HttpRequest | HttpResponse | string | null;
 }
 
 export function HttpPanel({ className, children, source, title, ...otherProps }: Props) {

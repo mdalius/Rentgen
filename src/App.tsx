@@ -16,19 +16,26 @@ import HighlightedInput from './components/inputs/HighlightedInput';
 import HighlightedTextarea from './components/inputs/HighlightedTextarea';
 import Select, { SelectOption } from './components/inputs/Select';
 import Textarea from './components/inputs/Textarea';
+import Toggle from './components/inputs/Toggle';
 import Loader from './components/loaders/Loader';
 import TestRunningLoader from './components/loaders/TestRunningLoader';
 import ConfirmationModal from './components/modals/ConfirmationModal';
 import ImportConflictModal from './components/modals/ImportConflictModal';
-import ProjectImportConfirmModal from './components/modals/ProjectImportConfirmModal';
 import Modal from './components/modals/Modal';
+import ProjectImportConfirmModal from './components/modals/ProjectImportConfirmModal';
 import SetAsDynamicVariableModal from './components/modals/SetAsDynamicVariableModal';
 import SettingsModal from './components/modals/SettingsModal';
 import Panel from './components/panels/Panel';
 import ParametersPanel from './components/panels/ParametersPanel';
 import TestResultsComparisonPanel from './components/panels/TestResultsComparisonPanel';
+import { PERFORMANCE_INSIGHTS } from './components/settings/PerformanceInsightsSettings';
+import { SECURITY_TESTS } from './components/settings/SecurityTestsSettings';
 import Sidebar from './components/sidebar/Sidebar';
-import TestsTable, { ExpandedTestComponent, getTestsTableColumns } from './components/tables/TestsTable';
+import TestsTable, {
+  ExpandedTestComponent,
+  getTestsTableColumns,
+  TestsTableHeader,
+} from './components/tables/TestsTable';
 import { JsonViewer } from './components/viewers/JsonViewer';
 import { appConfig } from './constants/appConfig';
 import { useCtrlS } from './hooks/useCtrlS';
@@ -74,7 +81,9 @@ import {
   selectCurl,
   selectCurlError,
   selectDeleteFolderModal,
+  selectDisabledPerformanceInsights,
   selectDisabledRunTests,
+  selectDisabledSecurityTests,
   selectDynamicVariables,
   selectEditingEnvironmentId,
   selectEnvironments,
@@ -118,8 +127,10 @@ import { websocketActions } from './store/slices/websocketSlice';
 
 import ClearCrossIcon from './assets/icons/clear-cross-icon.svg';
 import DarkModeIcon from './assets/icons/dark-mode-icon.svg';
+import GearIcon from './assets/icons/gear-icon.svg';
 import LightModeIcon from './assets/icons/light-mode-icon.svg';
 import ReloadIcon from './assets/icons/reload-icon.svg';
+import SidebarButton from './components/sidebar/SidebarButton';
 
 type Mode = 'HTTP' | 'WSS';
 
@@ -232,6 +243,10 @@ export default function App() {
   const curlError = useAppSelector(selectCurlError);
   const exportFormat = useAppSelector(selectExportFormat);
   const certificateError = useAppSelector(selectCertificateError);
+
+  // Settings state
+  const disabledSecurityTests = useAppSelector(selectDisabledSecurityTests);
+  const disabledPerformanceInsights = useAppSelector(selectDisabledPerformanceInsights);
 
   // Tests hook
   const {
@@ -931,7 +946,7 @@ export default function App() {
                 </div>
                 {runResult?.warning && (
                   <div className="px-4 py-2 text-xs bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 border-t border-yellow-200 dark:border-yellow-800">
-                    <span className="font-semibold">{t('common.warning')}</span> {runResult.warning}
+                    <span className="font-semibold">{t('common.warning')}:</span> {runResult.warning}
                   </div>
                 )}
                 {httpResponse.status !== SENDING && (
@@ -1112,12 +1127,28 @@ export default function App() {
 
             {testResults && (
               <>
-                <Panel title={t('tests.securityTests')}>
+                <Panel
+                  title={
+                    <TestsTableHeader
+                      disabledTests={disabledSecurityTests}
+                      tests={securityTests}
+                      title={t('tests.securityTests')}
+                    >
+                      <SidebarButton
+                        className="py-1.75 px-2.5"
+                        label={t('sidebar.settings')}
+                        onClick={() => dispatch(uiActions.openSettingsModal())}
+                      >
+                        <GearIcon className="w-5 h-5" />
+                      </SidebarButton>
+                    </TestsTableHeader>
+                  }
+                >
                   <TestsTable
                     columns={[
                       ...getTestsTableColumns(['Check', 'Expected', 'Actual'], t),
                       {
-                        name: 'Result',
+                        name: t('tables.result'),
                         selector: (row) => row.status,
                         width: securityTests.find((test) =>
                           [TestStatus.Bug, TestStatus.Fail, TestStatus.Warning].includes(test.status),
@@ -1150,9 +1181,25 @@ export default function App() {
                           </TestResultControls>
                         ),
                       },
+                      {
+                        name: t('common.ignore'),
+                        width: '80px',
+                        cell: (row, id) => (
+                          <div data-column-id={id} data-tag="allowRowEvents">
+                            {SECURITY_TESTS.includes(row.name) && (
+                              <Toggle
+                                key={id}
+                                checked={!disabledSecurityTests.includes(row.name)}
+                                onChange={() => dispatch(settingsActions.toggleSecurityTest(row.name))}
+                              />
+                            )}
+                          </div>
+                        ),
+                      },
                     ]}
                     expandableRows
                     expandableRowsComponent={ExpandedTestComponent}
+                    expandableRowDisabled={(row) => disabledSecurityTests.includes(row.name)}
                     expandableRowsComponentProps={{ headers: parseHeaders(headers), protoFile, messageType }}
                     expandOnRowClicked
                     data={securityTests}
@@ -1161,17 +1208,33 @@ export default function App() {
                   />
                 </Panel>
 
-                <Panel title={t('tests.performanceInsights')}>
+                <Panel
+                  title={
+                    <TestsTableHeader
+                      disabledTests={disabledPerformanceInsights}
+                      tests={performanceTests}
+                      title={t('tests.performanceInsights')}
+                    >
+                      <SidebarButton
+                        className="py-1.75 px-2.5"
+                        label={t('sidebar.settings')}
+                        onClick={() => dispatch(uiActions.openSettingsModal())}
+                      >
+                        <GearIcon className="w-5 h-5" />
+                      </SidebarButton>
+                    </TestsTableHeader>
+                  }
+                >
                   <TestsTable
                     columns={[
                       ...getTestsTableColumns(['Check', 'Expected'], t),
                       {
-                        name: 'Actual',
+                        name: t('tables.actual'),
                         selector: (row) => row.actual,
                         cell: (row) => <div className="py-1">{row.actual}</div>,
                       },
                       {
-                        name: 'Result',
+                        name: t('tables.result'),
                         selector: (row) => row.status,
                         width: performanceTests.find((test) =>
                           [TestStatus.Bug, TestStatus.Fail, TestStatus.Warning].includes(test.status),
@@ -1201,6 +1264,21 @@ export default function App() {
                           </TestResultControls>
                         ),
                       },
+                      {
+                        name: t('common.ignore'),
+                        width: '80px',
+                        cell: (row, id) => (
+                          <div data-column-id={id} data-tag="allowRowEvents">
+                            {PERFORMANCE_INSIGHTS.includes(row.name) && (
+                              <Toggle
+                                key={id}
+                                checked={!disabledPerformanceInsights.includes(row.name)}
+                                onChange={() => dispatch(settingsActions.togglePerformanceInsight(row.name))}
+                              />
+                            )}
+                          </div>
+                        ),
+                      },
                     ]}
                     expandableRows
                     expandableRowsComponent={ExpandedTestComponent}
@@ -1208,7 +1286,8 @@ export default function App() {
                     expandableRowDisabled={(row) =>
                       (row.name !== RESPONSE_SIZE_CHECK_TEST_NAME &&
                         row.name !== ARRAY_LIST_WITHOUT_PAGINATION_TEST_NAME) ||
-                      !row.response
+                      !row.response ||
+                      disabledPerformanceInsights.includes(row.name)
                     }
                     expandOnRowClicked
                     data={performanceTests}
@@ -1217,7 +1296,7 @@ export default function App() {
                   />
                 </Panel>
 
-                <Panel title={t('tests.dataDrivenTests')}>
+                <Panel title={<TestsTableHeader tests={dataDrivenTests} title={t('tests.dataDrivenTests')} />}>
                   <TestsTable
                     columns={getTestsTableColumns(['Parameter', 'Value', 'Expected', 'Actual', 'Result'], t)}
                     expandableRows
@@ -1232,7 +1311,7 @@ export default function App() {
                   />
                 </Panel>
 
-                <Panel title={t('tests.crud')}>
+                <Panel title={<TestsTableHeader tests={crudTests} title={t('tests.crud')} />}>
                   <TestsTable
                     columns={getTestsTableColumns(['Method', 'Expected', 'Actual', 'Result'], t)}
                     expandableRows

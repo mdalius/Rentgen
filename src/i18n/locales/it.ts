@@ -19,13 +19,22 @@ const it = {
     overwrite: 'Sovrascrivi',
     enabled: 'Abilitato',
     disabled: 'Disabilitato',
-    warning: 'Attenzione:',
     connect: 'Connetti',
     disconnect: 'Disconnetti',
     beautify: 'Formatta',
     reload: 'Ricarica',
     cut: 'Taglia',
     paste: 'Incolla',
+    enable: 'Abilita',
+    disable: 'Disabilita',
+    passed: 'Superato',
+    failed: 'Fallito',
+    bug: 'Bug',
+    bugs: 'Bug',
+    warning: 'Avviso',
+    warnings: 'Avvisi',
+    ignore: 'Ignora',
+    ignored: 'Ignorato',
   },
 
   // Sidebar
@@ -367,6 +376,12 @@ const it = {
       title: 'Test di sicurezza',
       enabledCount: '{{enabled}}/{{total}} abilitati',
       description: 'Attiva o disattiva i singoli test di sicurezza per personalizzare la tua esperienza di test.',
+    },
+    performanceInsights: {
+      title: 'Analisi delle prestazioni',
+      enabledCount: '{{enabled}}/{{total}} abilitati',
+      description:
+        'Attiva o disattiva le singole analisi delle prestazioni per personalizzare la tua esperienza di test.',
     },
     languageSection: {
       title: 'Lingua',
